@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Weston Assembly</title>
+<script src="../lib/ace.js"></script>
+<script>
+</script>
+<style>
+html, body {
+    height: 100%;
+    font-family: Lucida Console;
+    background-color: black;
+    color: white;
+    margin: 0px;
+    overflow: hidden;
+}
+
+#editor {
+    width: 50%;
+    height: calc(100% - 4px);
+    border: 2px solid white;
+    padding: 0px;
+    margin: 0px;
+    float: left;
+}
+
+#cpu {
+    width: calc(50% - 4px);
+    height: 100%;
+    border: 2px solid white;
+    padding: 0px;
+    margin: 0px;
+    color: white;
+    float: right;
+}
+
+.cell {
+    border: 1px solid white;
+    padding: 0px;
+    margin: 0px;
+}
+</style>
+</head>
+<body>
+    <table id="cpu"></table>
+    <pre id="editor"></pre>
+    <script>
+        var editor = ace.edit("editor");
+        editor.setTheme("../ace/theme/twilight");
+        
+        //var cpu = document.getElementById("cpu");
+        //for (var i = 0; i < 16; i++) {
+        //    cpu.innerHTML += "<tr>";
+        //    /*for (var j = 0; j < 8; j++) {
+        //        cpu.innerHTML += "<td>0</td>";
+        //    }*/
+        //    cpu.innerHTML += "</tr>"
+        //}
+        console.log(cpu.innerHTML);
+    </script>
+</body>
+</html>
