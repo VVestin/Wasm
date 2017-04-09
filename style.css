@@ -1,0 +1,35 @@
+html, body {
+	font-size: 18pt;
+    height: 100%;
+    font-family: monospace;
+    background-color: black;
+    color: white;
+    margin: 0px;
+    overflow: hidden;
+}
+
+#editor {
+    width: 50%;
+    height: calc(100% - 4px);
+    border: 2px solid white;
+    padding: 0px;
+    margin: 0px;
+    float: left;
+}
+
+#cpu {
+    width: calc(50% - 4px);
+    height: 100%;
+    border: 2px solid white;
+    padding: 0px;
+    margin: 0px;
+    color: white;
+    float: right;
+	border-collapse: collapse;
+}
+
+td, tr, th {
+    border: 2px solid white;
+    padding: 0px;
+	margin: 0px;
+}
