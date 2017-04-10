@@ -1,0 +1,10 @@
+This is the instruction set for Weston Assembly
+
+Assembler directives:
+.byte		|  Define a byte
+.define		|  Define a constant
+.org		|  Set the address
+;			|  Starts a single line comment
+
+8-bit Registers:
+A, B, C, and D.
