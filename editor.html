@@ -1,59 +1,94 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+<meta charset="utf-8" />
 <title>Weston Assembly</title>
 <script src="lib/ace.js"></script>
 <script src="editor.js"></script>
 <link rel="stylesheet" type="text/css" href="style.css"></link>
 </head>
 <body>
-    <pre id="editor"></pre>
-	<div id="menu">
-		<button style="background-color: var(--wyellow)" onclick="flash(editor.getValue())">
-			Flash<br>=&gt;
-		</button>
-		<button style="background-color: var(--wblue)">
-			Run<br>&gt;
-		</button>
-		<button style="background-color: var(--wgreen)">
-			Step<br>~
-		</button>
-		<button style="background-color: var(--wred)">
-			Stop<br>[]
-		</button>
-	</div>
-    <table id="cpu"></table>
-    <script>
-    var editor = ace.edit("editor");
-	editor.setFontSize(24);
-    editor.setTheme("ace/theme/twilight");
-	ace.require("ace/keybindings/vim");
-    editor.setKeyboardHandler("ace/keyboard/vim");    
-		
-	var hex = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "A", "B", "C", "D", "E", "F"];
-	var cpu = document.getElementById("cpu");
-	var header = document.createElement("tr");
-	header.appendChild(document.createElement("th"));
-	for (var i = 0; i < 8; i++) {
-		var msd = document.createElement("th");
-		msd.innerHTML = i;
-		msd.style.color = "#AAA";
-		header.appendChild(msd);
+<pre id="editor">
+ld b,30
+ld a,b
+ld (16),a
+ld b,(16)
+</pre>
+
+<div id="menu">
+	<button style="background-color: var(--wyellow)" onclick="flash(editor.getValue())">
+		Flash<br>=&gt;
+	</button>
+	<button style="background-color: var(--wblue)">
+		Run<br>&gt;
+	</button>
+	<button style="background-color: var(--wgreen)" onclick="step()">
+		Step<br>~
+	</button>
+	<button style="background-color: var(--wred)" onclick="stop()">
+		Stop<br>[]
+	</button>
+	<table id="registers">
+		<tr>
+			<th colspan="12">Registers</th>
+		</tr>
+		<tr>
+			<td colspan="3" style="background-color: var(--wgreen)">A</td>
+			<td colspan="3" style="background-color: var(--wgreen)">B</td>
+			<td colspan="3" style="background-color: var(--wgreen)">C</td>
+			<td colspan="3" style="background-color: var(--wgreen)">D</td>
+		</tr>
+		<tr>
+			<td colspan="3" style="background-color: var(--wgreen)" id="A">$00</td>
+			<td colspan="3" style="background-color: var(--wgreen)" id="B">$00</td>
+			<td colspan="3" style="background-color: var(--wgreen)" id="C">$00</td>
+			<td colspan="3" style="background-color: var(--wgreen)" id="D">$00</td>
+		</tr>
+		<tr>
+			<td colspan="4" style="background-color: var(--wred)">F</td>
+			<td colspan="4" style="background-color: var(--wblue)">PC</td>
+			<td colspan="4" style="background-color: var(--wyellow)">SP</td>
+		</tr>
+		<tr>
+			<td colspan="4" style="background-color: var(--wred)" class="reg-val" id="F">$00</td>
+			<td colspan="4" style="background-color: var(--wblue)" class="reg-val" id="PC">$00</td>
+			<td colspan="4" style="background-color: var(--wyellow)" class="reg-val" id="SP">$00</td>
+		</tr>
+	</table>
+</div>
+<table id="cpu"></table>
+<script>
+var editor = ace.edit("editor");
+editor.setFontSize(24);
+editor.setTheme("ace/theme/twilight");
+ace.require("ace/keybindings/vim");
+editor.setKeyboardHandler("ace/keyboard/vim");    
+	
+var hex = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "A", "B", "C", "D", "E", "F"];
+var cpu = document.getElementById("cpu");
+var header = document.createElement("tr");
+header.appendChild(document.createElement("th"));
+for (var i = 0; i < 8; i++) {
+	var msd = document.createElement("th");
+	msd.innerHTML = i;
+	msd.style.color = "#666";
+	header.appendChild(msd);
+}
+cpu.appendChild(header);
+for (var i = 0; i < 16; i++) {
+	var row = document.createElement("tr");
+	var lsd = document.createElement("th");
+	lsd.innerHTML = hex[i];
+	lsd.style.color = "#666";
+	row.appendChild(lsd);	
+	for (var j = 0; j < 8; j++) {
+		var cell = document.createElement("td");
+		cell.innerHTML = " - ";
+		row.appendChild(cell);	
 	}
-	cpu.appendChild(header);
-	for (var i = 0; i < 16; i++) {
-		var row = document.createElement("tr");
-		var lsd = document.createElement("th");
-		lsd.innerHTML = hex[i];
-		lsd.style.color = "#AAA";
-		row.appendChild(lsd);	
-		for (var j = 0; j < 8; j++) {
-			var cell = document.createElement("td");
-			cell.innerHTML = " 0 ";
-			row.appendChild(cell);	
-		}
-		cpu.appendChild(row);
-	}
-   </script>
+	cpu.appendChild(row);
+}
+updateRegisters();
+</script>
 </body>
 </html>

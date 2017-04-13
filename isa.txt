@@ -35,6 +35,12 @@ Instructions:
    LD dest,cst	  |	 dest = GP register	  |	 Loads a constant value	 |	100000DD
 				  |	 cst  = constant	  |	 into the dest register	 |	CCCCCCCC
    ---------------+-----------------------+--------------------------+--------------
+   LD (adr),src   |  adr = address        |  Loads the value in src  |  001000DD
+                  |  src = GP register    |  into memory at adr      |  AAAAAAAA
+   ---------------+-----------------------+--------------------------+--------------
+   LD dest,(adr)  |  dest = GP register   |  Loads the value at adr  |  001001DD
+  	 			  |  adr = address        |  into dest               |  AAAAAAAA
+   ---------------+-----------------------+--------------------------+--------------
    POP dest		  |	 dest = register	  |	 Pops from the hardware	 |	100010DD
 				  |						  |	 stack into dest		 |
    ---------------+-----------------------+--------------------------+--------------
