@@ -1,4 +1,4 @@
-const type = {REG: "REG", GP_REG: "GP_REG", CST: "CST", REGI: "REGI", CSTI: "CSTI"};
+const type = {REG: "REG", GP_REG: "GP_REG", IMM: "IMM", REGI: "REGI", ADR: "ADR"};
 const INSTRUCTIONS = [
 	{oper: "PUSH", args: [type.GP_REG],            prefix: "100010"},
 	{oper: "POP",  args: [type.GP_REG],            prefix: "100011"},
@@ -12,22 +12,22 @@ const INSTRUCTIONS = [
 	{oper: "SLA",  args: [],                       prefix: "10110010"},
 	{oper: "NOP",  args: [],                       prefix: "00000000"},
 	{oper: "RET",  args: [],                       prefix: "10110101"},
-	{oper: "CALL", args: [type.CST],               prefix: "10110100"},
-	{oper: "DJNZ", args: [type.CST],               prefix: "10110110"},
+	{oper: "CALL", args: [type.IMM],               prefix: "10110100"},
+	{oper: "DJNZ", args: [type.IMM],               prefix: "10110110"},
 	{oper: "AND",  args: [type.GP_REG],            prefix: "101000"},
-	{oper: "AND",  args: [type.CST],               prefix: "10101100"},
+	{oper: "AND",  args: [type.IMM],               prefix: "10101100"},
 	{oper: "OR",   args: [type.GP_REG],            prefix: "101001"},
-	{oper: "OR",   args: [type.CST],               prefix: "10101101"},
+	{oper: "OR",   args: [type.IMM],               prefix: "10101101"},
 	{oper: "XOR",  args: [type.GP_REG],            prefix: "101010"},
-	{oper: "XOR",  args: [type.CST],               prefix: "10101110"},
-	{oper: "JUMP", args: [type.CST],               prefix: "10110111"},
-	{oper: "JUMP", args: [type.COND, type.CST],    prefix: "101110"},
+	{oper: "XOR",  args: [type.IMM],               prefix: "10101110"},
+	{oper: "JUMP", args: [type.IMM],               prefix: "10110111"},
+	{oper: "JUMP", args: [type.COND, type.IMM],    prefix: "101110"},
 	{oper: "LD",   args: [type.REG, type.REG],     prefix: "11"},
 	{oper: "LD",   args: [type.REGI, type.GP_REG], prefix: "010"},
 	{oper: "LD",   args: [type.GP_REG, type.REGI], prefix: "011"},
-	{oper: "LD",   args: [type.GP_REG, type.CST],  prefix: "100000"},
-	{oper: "LD",   args: [type.CSTI, type.GP_REG], prefix: "001000"},
-	{oper: "LD",   args: [type.GP_REG, type.CSTI], prefix: "001001"},
+	{oper: "LD",   args: [type.GP_REG, type.IMM],  prefix: "100000"},
+	{oper: "LD",   args: [type.ADR, type.GP_REG],  prefix: "001000"},
+	{oper: "LD",   args: [type.GP_REG, type.ADR],  prefix: "001001"},
 ];
 const GP_REG_ENC = {"A": "00", "B": "01", "C": "10", "D": "11"};
 const REG_ENC = {"A": "001", "B": "010", "C": "011", "D": "100", "F": "101", "PC": "110", "SP": "111"};
@@ -58,16 +58,72 @@ function step() {
 	var inst = parseInt(cpu.children[registers["PC"] % 16 + 1].children[Math.floor(registers["PC"] / 16 + 1)].innerHTML.substring(1), 16).toString(2);
 	for (var i = inst.length; i < 8; i++)
 		inst = "0" + inst;
-	registers["PC"]++;
-	var next = parseInt(cpu.children[registers["PC"] % 16 + 1].children[Math.floor(registers["PC"] / 16 + 1)].innerHTML.substring(1), 16);
+	var next = parseInt(cpu.children[(registers["PC"] + 1) % 16 + 1].children[Math.floor((registers["PC"] + 1) / 16 + 1)].innerHTML.substring(1), 16);
 	console.log(inst);
 	if (inst === "00000000") { // NOP
 
-	} if (inst.startsWith("11")) { // LD reg,reg
+	} else if (inst.startsWith("11")) { // LD reg,reg
 		registers[REG_DEC[inst.substr(2,3)]] = registers[REG_DEC[inst.substr(5,3)]];
-	} else if (inst.startsWith("100000")) { // LD reg,cst
+	} else if (inst.startsWith("100000")) { // LD reg,imm
 		registers[GP_REG_DEC[inst.substr(6,2)]] = next;
 		registers["PC"]++;
+	} else if (inst.startsWith("010")) { // LD (reg),reg
+		memory.data[registers[REG_DEC[inst.substr(3,3)]]] = registers[GP_REG_DEC[inst.substr(6,2)]];
+	} else if (inst.startsWith("011")) { // LD reg,(reg)
+		registers[GP_REG_DEC[inst.substr(3,2)]] = memory.data[registers[REG_DEC[inst.substr(5,3)]]];
+	} else if (inst.startsWith("001000")) { // LD (adr),reg
+		memory.data[next] = registers[GP_REG_DEC[inst.substr(6,2)]];
+		registers["PC"]++;
+	} else if (inst.startsWith("001001")) { // LD reg,(adr)
+		registers[GP_REG_DEC[inst.substr(6,2)]] = memory.data[next];
+		registers["PC"]++;
+	} else if (inst.startsWith("100010")) { // POP reg
+		memory.data[registers["SP"]] = registers[GP_REG_DEC[inst.substr(6,2)]];
+		registers["SP"]--;
+	} else if (inst.startsWith("100011")) { // PUSH reg
+		registers["SP"]++;
+		registers[GP_REG_DEC[inst.substr(6,2)]] = memory.data[registers["SP"]];
+	} else if (inst.startsWith("100001")) { // INC reg
+		registers[GP_REG_DEC[inst.substr(6,2)]]++;
+		if (registers[GP_REG_DEC[inst.substr(6,2)]] === 0x100) {
+			registers[GP_REG_DEC[inst.substr(6,2)]] = 0;
+		}
+	} else if (inst.startsWith("100100")) { // DEC reg
+		if (registers[GP_REG_DEC[inst.substr(6,2)]] === 0) {
+			registers[GP_REG_DEC[inst.substr(6,2)]] = 0x100;
+		}
+		registers[GP_REG_DEC[inst.substr(6,2)]]--;
+	} else if (inst.startsWith("100101")) { // ADD reg
+		registers["A"] = (registers["A"] + registers[GP_REG_DEC[inst.substr(6,2)]]) % 256;
+	} else if (inst.startsWith("100110")) { // SUB reg
+		registers["A"] = (registers["A"] - registers[GP_REG_DEC[inst.substr(6,2)]]) % 256;
+	} else if (inst.startsWith("100111")) { // CP reg
+		// Fun with flags
+	} else if (inst.startsWith("101000")) { // AND reg
+		registers["A"] = registers["A"] & registers[GP_REG_DEC[inst.substr(6,2)]];
+	} else if (inst.startsWith("101001")) { // OR reg
+		registers["A"] = registers["A"] | registers[GP_REG_DEC[inst.substr(6,2)]];
+	} else if (inst.startsWith("101010")) { // XOR reg
+		registers["A"] = registers["A"] ^ registers[GP_REG_DEC[inst.substr(6,2)]];
+	} else if (inst.startsWith("10101100")) { // AND reg
+		registers["A"] = registers["A"] & next;
+		registers["PC"]++;
+	} else if (inst.startsWith("10101101")) { // OR reg
+		registers["A"] = registers["A"] | next;
+		registers["PC"]++;
+	} else if (inst.startsWith("10101110")) { // XOR reg
+		registers["A"] = registers["A"] ^ next;
+		registers["PC"]++;
+	}
+
+	registers["PC"]++;
+	var cpu = document.getElementById("cpu");
+	for (var i = 0; i < memory.data.length; i++) {
+		if (memory.data[i] === "-") {
+			cpu.children[i % 16 + 1].children[Math.floor(i / 16 + 1)].innerHTML = "-";
+		} else {
+			cpu.children[i % 16 + 1].children[Math.floor(i / 16 + 1)].innerHTML = toHex(memory.data[i]).toUpperCase();
+		}
 	}
 	updateRegisters();
 }
@@ -102,7 +158,7 @@ function flash(src) {
 			for (var i = 0; i < argVals.length; i++) {
 				argVals[i] = argVals[i].trim();
 				if (!isNaN(parseInt(argVals[i], 10))) {
-					args[i] = type.CST;
+					args[i] = type.IMM;
 				} else if (argVals[i] === "A" || argVals[i] === "B" || argVals[i] === "C" || argVals[i] === "D") {
 					args[i] = type.GP_REG;
 				} else if (argVals[i] === "F" || argVals[i] === "PC" || argVals[i] === "SP") {
@@ -112,7 +168,7 @@ function flash(src) {
 					if (argVals[i] === "A" || argVals[i] === "B" || argVals[i] === "C" || argVals[i] === "D" || argVals[i] === "F" || argVals[i] === "PC" || argVals[i] === "SP") {
 						args[i] = type.REGI;
 					} else if (!isNaN(parseInt(argVals[i], 10))) {
-						args[i] = type.CSTI;
+						args[i] = type.ADR;
 					}
 				}
 			}
@@ -121,11 +177,11 @@ function flash(src) {
 		}
 
 		// Check and execute assembler directives
-		if (oper === ".ORG" && argMatch([type.CST], args)) {
+		if (oper === ".ORG" && argMatch([type.IMM], args)) {
 			locCounter = parseInt(argVals[0], 10);
 			return;
-		} else if (oper === ".BYTE" && argMatch([type.CST], args)) {
-			memory.data[locCounter++] = parseInt(argVals[0], 10).toString(2);
+		} else if (oper === ".BYTE" && argMatch([type.IMM], args)) {
+			memory.data[locCounter++] = parseInt(argVals[0], 10);
 			return;
 		}
 		INSTRUCTIONS.forEach(function(inst) {
@@ -134,7 +190,7 @@ function flash(src) {
 				var instCode = inst.prefix;
 				var constant = "";
 				for (var i = 0; i < args.length; i++) {
-					if (inst.args[i] === type.CST || inst.args[i] === type.CSTI) {
+					if (inst.args[i] === type.IMM || inst.args[i] === type.ADR) {
 						constant = argVals[i];
 					} else if (inst.args[i] === type.REG || inst.args[i] == type.REGI) {
 						instCode += REG_ENC[argVals[i]];
@@ -142,9 +198,9 @@ function flash(src) {
 						instCode += GP_REG_ENC[argVals[i]];
 					}
 				}
-				memory.data[locCounter++] = instCode;
+				memory.data[locCounter++] = parseInt(instCode, 2);
 				if (constant !== "") {
-					memory.data[locCounter++] = parseInt(constant,10).toString(2);
+					memory.data[locCounter++] = parseInt(constant, 10);
 				}
 				return;
 			}
@@ -156,7 +212,7 @@ function flash(src) {
 		if (memory.data[i] === "-") {
 			cpu.children[i % 16 + 1].children[Math.floor(i / 16 + 1)].innerHTML = "-";
 		} else {
-			cpu.children[i % 16 + 1].children[Math.floor(i / 16 + 1)].innerHTML = toHex(parseInt(memory.data[i], 2)).toUpperCase();
+			cpu.children[i % 16 + 1].children[Math.floor(i / 16 + 1)].innerHTML = toHex(memory.data[i]).toUpperCase();
 		}
 	}
 }

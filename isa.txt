@@ -32,8 +32,8 @@ Instructions:
    LD dest,(src)  |	 dest = GP register	  |	 Loads data from address |	011DDSSS
 				  |	 src  = register	  |	 in src into dest		 |
    ---------------+-----------------------+--------------------------+--------------
-   LD dest,cst	  |	 dest = GP register	  |	 Loads a constant value	 |	100000DD
-				  |	 cst  = constant	  |	 into the dest register	 |	CCCCCCCC
+   LD dest,imm	  |	 dest = GP register	  |	 Loads an immediate value|	100000DD
+				  |	 imm  = immediate	  |	 into the dest register	 |	CCCCCCCC
    ---------------+-----------------------+--------------------------+--------------
    LD (adr),src   |  adr = address        |  Loads the value in src  |  001000DD
                   |  src = GP register    |  into memory at adr      |  AAAAAAAA
@@ -69,13 +69,13 @@ Instructions:
    XOR reg		  |	 reg  = GP register	  |	 XORs reg with A and	 |	101010RR
 				  |						  |	 stores result in A		 |
    ---------------+-----------------------+--------------------------+--------------
-   AND cst		  |	 cst  = constant	  |	 ANDs cst with A and	 |	10101100
+   AND imm		  |	 imm  = immediate	  |	 ANDs imm with A and	 |	10101100
 				  |						  |	 stores result in A		 |  CCCCCCCC
    ---------------+-----------------------+--------------------------+--------------
-   OR cst		  |	 cst  = constant	  |	 ORs cst with A and	  	 |	10101101
+   OR imm		  |	 imm  = immediate	  |	 ORs imm with A and	  	 |	10101101
 				  |						  |	 stores result in A		 |	CCCCCCCC
    ---------------+-----------------------+--------------------------+--------------
-   XOR cst		  |	 cst  = constant	  |	 XORs cst with A and	 |	10101110
+   XOR imm		  |	 imm  = immediate	  |	 XORs imm with A and	 |	10101110
 				  |						  |	 stores result in A		 |	CCCCCCCC
    ---------------+-----------------------+--------------------------+--------------
    NEG			  |						  |	 Takes twos complement	 |	10101111
