@@ -41,11 +41,11 @@ Instructions:
    LD dest,(adr)  |  dest = GP register   |  Loads the value at adr  |  001001DD
   	 			  |  adr = address        |  into dest               |  AAAAAAAA
    ---------------+-----------------------+--------------------------+--------------
-   POP dest		  |	 dest = register	  |	 Pops from the hardware	 |	100010DD
-				  |						  |	 stack into dest		 |
-   ---------------+-----------------------+--------------------------+--------------
-   PUSH	src		  |	 src  = register	  |	 Pushes the data in src	 |	100011SS
+   PUSH	src		  |	 src  = register	  |	 Pushes the data in src	 |	100010SS
 				  |						  |	 onto the hardware stack |
+   ---------------+-----------------------+--------------------------+--------------
+   POP dest		  |	 dest = register	  |	 Pops from the hardware	 |	100011DD
+				  |						  |	 stack into dest		 |
    ---------------+-----------------------+--------------------------+--------------
    INC reg		  |	 reg  = GP register	  |	 increments reg			 |	100001RR
    ---------------+-----------------------+--------------------------+--------------
@@ -104,7 +104,7 @@ Instructions:
    JUMP addr	  |	 addr = address		  |	 Sets PC to addr		 |	10110111
 				  |						  |	                    	 |	AAAAAAAA
    ---------------+-----------------------+--------------------------+--------------
-   JUMP cond,addr |	 addr = address		  |	 Sets PC to addr if cond |	101110CC
+   JUMP cond,addr |	 addr = address		  |	 Sets PC to addr if cond |	10111CCC
 				  |	 cond = condition	  |	 is true				 |	AAAAAAAA
 
 Notes on above table:
@@ -119,3 +119,10 @@ GP means General Purpose
    B = 010	   PC = 110
    C = 011	   SP = 111
    D = 100
+Condition codes:
+	C  = 001
+	NC = 010
+	Z  = 011
+	NZ = 100
+	S  = 101
+	NS = 110
