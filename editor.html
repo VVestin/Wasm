@@ -8,6 +8,11 @@
 <link rel="stylesheet" type="text/css" href="style.css"></link>
 </head>
 <body>
+<form style="display: none" id="formy">
+<input type="file" class="option" id="file-input" onChange="load()" style="display: none"/>
+</form>
+<div id="left-panel">
+<span class="option" onclick="save()"> Save </span><span class="option" onclick="fileInput()"> Load </span><span class="option"> Light </span><span class="option" style="font-weight: bold"> VV </span>
 <pre id="editor">
 ld a,0
 ld b,10
@@ -16,6 +21,7 @@ inc a
 djnz Loop
 
 </pre>
+</div>
 
 <div id="menu">
 	<button class="menu-button" style="background-color: var(--wyellow)" onclick="flash()">

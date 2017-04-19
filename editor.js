@@ -21,7 +21,7 @@ const INSTRUCTIONS = [
 	{oper: "XOR",  args: [type.GP_REG],            prefix: "101010"},
 	{oper: "XOR",  args: [type.IMM],               prefix: "10101110"},
 	{oper: "JUMP", args: [type.IMM],               prefix: "10110111"},
-	{oper: "JUMP", args: [type.COND, type.IMM],    prefix: "101110"},
+	{oper: "JUMP", args: [type.COND, type.IMM],    prefix: "10111"},
 	{oper: "LD",   args: [type.REG, type.REG],     prefix: "11"},
 	{oper: "LD",   args: [type.REGI, type.GP_REG], prefix: "010"},
 	{oper: "LD",   args: [type.GP_REG, type.REGI], prefix: "011"},
@@ -284,7 +284,7 @@ function step() {
 		registers["PC"] = memory.data[registers["SP"]];
 	} else if (inst.startsWith("10110111")) { // JUMP adr
 		registers["PC"] = next - 1;
-	} else if (inst.startsWith("101110")) { // JUMP cond,adr
+	} else if (inst.startsWith("10111")) { // JUMP cond,adr
 		var cond = inst.substr(5,3);
 		if (cond === "001" && registers["F"] & flags.carry || cond === "010" && !(registers["F"] & flags.carry) || 
 				cond === "011" && registers["F"] & flags.zero || cond === "100" && !(registers["F"] & flags.zero) ||
@@ -358,6 +358,7 @@ function run() {
 }
 
 function flash() {
+	clearMarkers();
 	if (showHelp)
 		toggleHelp();
 	var src = editor.getValue();
@@ -489,51 +490,75 @@ function toHex(a) {
 }
 
 window.onload = function() {
-		editor = ace.edit("editor");
-		editor.setFontSize(24);
-		editor.setTheme("ace/theme/twilight");
-		ace.require("ace/keybindings/vim");
-		editor.setKeyboardHandler("ace/keyboard/vim");    
-			
-		var hex = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "A", "B", "C", "D", "E", "F"];
-		cpu = document.getElementById("cpu");
-		var header = document.createElement("tr");
-		var helpButton = document.createElement("td");
-		header.appendChild(helpButton);
-		helpButton.id = "help-button";
-		helpButton.onclick = toggleHelp; 
-		helpButton.innerHTML = "HELP";
-		helpButton.className = "cell";
+	editor = ace.edit("editor");
+	editor.setFontSize(24);
+	editor.setTheme("ace/theme/twilight");
+	ace.require("ace/keybindings/vim");
+	editor.setKeyboardHandler("ace/keyboard/vim");    
+		
+	var hex = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "A", "B", "C", "D", "E", "F"];
+	cpu = document.getElementById("cpu");
+	var header = document.createElement("tr");
+	var helpButton = document.createElement("td");
+	header.appendChild(helpButton);
+	helpButton.id = "help-button";
+	helpButton.onclick = toggleHelp; 
+	helpButton.innerHTML = "HELP";
+	helpButton.className = "cell";
 
-		for (var i = 0; i < 8; i++) {
-			var msd = document.createElement("th");
-			msd.className = "cell";
-			msd.innerHTML = i;
-			msd.style.color = "#666";
-			header.appendChild(msd);
-		}
-		cpu.appendChild(header);
-		document.getElementById("help").children[0].insertBefore(header.cloneNode(true), document.getElementById("help").children[0].firstChild);
-		document.getElementById("help").children[0].children[0].children[0].onclick = toggleHelp;
-		document.getElementById("help").children[0].children[0].children[0].innerHTML = "MEMORY";
-		document.getElementById("help").children[0].children[0].children[0].style.backgroundColor = "var(--wred)";
+	for (var i = 0; i < 8; i++) {
+		var msd = document.createElement("th");
+		msd.className = "cell";
+		msd.innerHTML = i;
+		msd.style.color = "#666";
+		header.appendChild(msd);
+	}
+	cpu.appendChild(header);
+	document.getElementById("help").children[0].insertBefore(header.cloneNode(true), document.getElementById("help").children[0].firstChild);
+	document.getElementById("help").children[0].children[0].children[0].onclick = toggleHelp;
+	document.getElementById("help").children[0].children[0].children[0].innerHTML = "MEMORY";
+	document.getElementById("help").children[0].children[0].children[0].style.backgroundColor = "var(--wred)";
 
-		for (var i = 0; i < 16; i++) {
-			var row = document.createElement("tr");
-			var lsd = document.createElement("th");
-			lsd.className = "cell";
-			lsd.innerHTML = hex[i];
-			lsd.style.color = "#666";
-			row.appendChild(lsd);	
-			for (var j = 0; j < 8; j++) {
-				var cell = document.createElement("td");
-				cell.className = "cell";
-				cell.innerHTML = " - ";
-				row.appendChild(cell);	
-			}
-			cpu.appendChild(row);
+	for (var i = 0; i < 16; i++) {
+	var row = document.createElement("tr");
+	var lsd = document.createElement("th");
+	lsd.className = "cell";
+		lsd.innerHTML = hex[i];
+		lsd.style.color = "#666";
+		row.appendChild(lsd);	
+		for (var j = 0; j < 8; j++) {
+			var cell = document.createElement("td");
+			cell.className = "cell";
+			cell.innerHTML = " - ";
+			row.appendChild(cell);	
 		}
-		updateRegisters();
-		help = document.getElementById("help");
-		help.remove();
+		cpu.appendChild(row);
+	}
+	updateRegisters();
+	help = document.getElementById("help");
+	help.remove();
+	document.forms["formy"].elements["file-input"].onchange = function(e) {
+		var reader = new FileReader();
+		reader.onload = function(e) {
+			editor.setValue(e.target.result);
+		}
+		reader.readAsText(e.target.files[0]);
+	};
 }
+
+function save() {
+	var src = editor.getValue();
+	var a = document.createElement("a");
+	a.setAttribute("href", "data:text/plain;charser=utf-8" + encodeURI(src));
+	a.setAttribute("download", "wasm_code.txt");
+	a.style.display = "none";
+	document.body.appendChild(a);
+	a.click();
+	document.body.removeChild(a);
+}
+
+function fileInput() {
+	var filein = document.getElementById("file-input");
+	filein.click();
+}
+
