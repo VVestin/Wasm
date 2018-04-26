@@ -562,8 +562,9 @@ window.onload = function() {
 
 function save() {
 	var src = editor.getValue();
+	console.log(src);
 	var a = document.createElement("a");
-	a.setAttribute("href", "data:text/plain;charser=utf-8" + encodeURI(src));
+	a.setAttribute("href", "data:text/plain;charser=utf-8," + encodeURI(src));
 	a.setAttribute("download", "wasm_code.txt");
 	a.style.display = "none";
 	document.body.appendChild(a);
