@@ -12,14 +12,33 @@
 <input type="file" class="option" id="file-input" onChange="load()" style="display: none"/>
 </form>
 <div id="left-panel">
-<span class="option" onclick="save()"> Save </span><span class="option" onclick="fileInput()"> Load </span><span class="option"> Light </span><span class="option" style="font-weight: bold"> VV </span>
+<span class="option" onclick="save()"> Save </span><span class="option" onclick="fileInput()"> Load </span><span class="option"onclick="alert('Not yet implemented');"> Light </span><span class="option" style="font-weight: bold" onclick="window.location = 'http://vvest.in'"> VV </span>
 <pre id="editor">
-ld a,0
+ld a,5
 ld b,10
-Loop:
-inc a
-djnz Loop
+call Mult
 
+; Multiplies a and b, stores result in c
+Mult:
+ld c,0 ; Init c to be 0 (cummulive sum)
+_MultLoop:
+sra ; Shift a right (div by 2)
+push a ; Save a for later
+jump c,_MultSkipAdd ; If LSB of a was a zero before shift, don't add another factor of b
+jump z,_MultEnd
+; Add b to c
+ld a,c
+add b
+ld c,a
+_MultSkipAdd:
+; Shift b left (mult by 2)
+ld a,b
+sla
+ld b,a
+pop a ; Get back the old value of a
+jump _MultLoop ; Continue while a!=0
+_MultEnd:
+ret
 </pre>
 </div>
 
@@ -33,8 +52,8 @@ djnz Loop
 	<button class="menu-button" style="background-color: var(--wgreen)" onclick="step()">
 		Step<br>~
 	</button>
-	<button class="menu-button" style="background-color: var(--wred)" onclick="stop()">
-		Stop<br>[]
+	<button class="menu-button" style="background-color: var(--wred)" onclick="reset()">
+		Reset<br>x
 	</button>
 	<table id="registers">
 		<tr>
@@ -101,7 +120,7 @@ djnz Loop
 				<span class="bitwise">SLA</span><br>
 				<div class="description">Shifts the accumulator left arithmetically. Affects all flags.</div><br>
 				<span class="control">JUMP</span> [cond],addr<br>
-				<div class="description">Sets PC to addr. A flag condition can be specified to jump conditionally.</div><br>
+				<div class="description">Sets PC to addr. A flag condition can be specified to jump conditionally. (C,NC,Z,NZ,S,NS)</div><br>
 				<span class="control">DJNZ</span> addr <br>
 				<div class="description">Decrements B and jumps to addr if zero flag is not set.</div><br>
 				<span class="control">CALL</span> addr<br>

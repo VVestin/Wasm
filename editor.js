@@ -43,6 +43,7 @@ var cpu, help, editor;
 var showHelp = false;
 var Range = ace.require('ace/range').Range;
 var timerID = 0;
+var hasReset = false;
 
 function updateRegisters() {
 	if (document.getElementById("PC_Cursor")) {
@@ -68,6 +69,7 @@ function clearMarkers() {
 }
 
 function step() {
+	hasReset = false;
 	clearMarkers();
 	var inst = parseInt(cpu.children[registers["PC"] % 16 + 1].children[Math.floor(registers["PC"] / 16 + 1)].innerHTML.substring(1), 16).toString(2);
 	if (isNaN(inst)) {
@@ -241,6 +243,11 @@ function step() {
 			registers["F"] &= ~flags.zero;
 		}
 	} else if (inst.startsWith("10110001")) { // SRA
+		if (registers["A"] %2 == 1) {
+			registers["F"] |= flags.carry;
+		} else {
+			registers["F"] &= ~flags.carry;
+		}
 		if (registers["A"] >= 0x80) {
 			registers["A"] >>= 1;
 			registers["A"] += 0x80;
@@ -336,7 +343,10 @@ function toggleHelp() {
 	}
 }
 
-function stop() {
+function reset() {
+	if (hasReset) {
+		flash();
+	}
 	if (timerID !== 0) {
 		run();
 	}
@@ -344,11 +354,14 @@ function stop() {
 	registers = {"A": 0, "B": 0, "C": 0, "D": 0, "F": 0, "PC": 0, "SP": 0x7F};
 	editor.session.addMarker(new Range(memory.lineNum[registers["PC"]], 0, memory.lineNum[registers["PC"]], 1), "active-line", "fullLine");
 	updateRegisters();
+
+	hasReset = true;
 }
 
 function run() {
+	hasReset = false;
 	if (timerID === 0) {
-		timerID = window.setInterval(step, 50);
+		timerID = window.setInterval(step, 15);
 		document.getElementById("run-button").innerHTML = "Pause<br>||";
 	} else {
 		window.clearInterval(timerID);
@@ -426,6 +439,7 @@ function flash() {
 		} else {
 			oper = line;	
 		}
+		console.log('op: ' + oper + ' args: ' + args);
 
 		// Check and execute assembler directives
 		if (oper === ".ORG" && argMatch([type.IMM], args)) {
@@ -494,7 +508,7 @@ window.onload = function() {
 	editor.setFontSize(24);
 	editor.setTheme("ace/theme/twilight");
 	ace.require("ace/keybindings/vim");
-	editor.setKeyboardHandler("ace/keyboard/vim");    
+	//editor.setKeyboardHandler("ace/keyboard/vim");    
 		
 	var hex = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "A", "B", "C", "D", "E", "F"];
 	cpu = document.getElementById("cpu");
@@ -561,4 +575,3 @@ function fileInput() {
 	var filein = document.getElementById("file-input");
 	filein.click();
 }
-
