@@ -12,34 +12,33 @@
 <input type="file" class="option" id="file-input" onChange="load()" style="display: none"/>
 </form>
 <div id="left-panel">
-<span class="option" onclick="save()"> Save </span><span class="option" onclick="fileInput()"> Load </span><span class="option"onclick="alert('Not yet implemented');"> Light </span><span class="option" style="font-weight: bold" onclick="window.location = 'http://vvest.in'"> VV </span>
+<span class="option" onclick="save()"> Save </span>
+<span class="option" onclick="fileInput()"> Load </span>
+<span id="light-button" class="option"onclick="toggleLight()"> Light </span>
+<span class="option" style="font-weight: bold" onclick="window.location = 'http://vvest.in'"> VV </span>
 <pre id="editor">
 ld a,5
 ld b,10
-call Mult
+<!--; Multiplies a and b, stores result in c-->
+; This calculates c = a * b
+ld c,0 <!--; Init c to be 0 (cummulive sum) -->
+MultLoop:
+   sra <!--; Right shift a to check the LSB -->
+   push a <!--; Push a to preserve its value -->
+   jump nc,MultSkipAdd
+      ld a,c
+      add b <!--; Add b to c -->
+      ld c,a
+   MultSkipAdd:
+   jump z,MultEnd <!--; Ends when a is 0 -->
+   ld a,b
+   sla <!--; Multiply b by 2 -->
+   ld b,a
+   pop a <!--; Pop a now that arithmetic is done -->
+jump MultLoop
 
-; Multiplies a and b, stores result in c
-Mult:
-ld c,0 ; Init c to be 0 (cummulive sum)
-_MultLoop:
-sra ; Shift a right (div by 2)
-push a ; Save a for later
-jump c,_MultSkipAdd ; If LSB of a was a zero before shift, don't add another factor of b
-jump z,_MultEnd
-; Add b to c
-ld a,c
-add b
-ld c,a
-_MultSkipAdd:
-; Shift b left (mult by 2)
-ld a,b
-sla
-ld b,a
-pop a ; Get back the old value of a
-jump _MultLoop ; Continue while a!=0
-_MultEnd:
-ret
-</pre>
+MultEnd:
+pop a</pre>
 </div>
 
 <div id="menu">

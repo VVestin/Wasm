@@ -44,6 +44,7 @@ var showHelp = false;
 var Range = ace.require('ace/range').Range;
 var timerID = 0;
 var hasReset = false;
+var light = false;
 
 function updateRegisters() {
 	if (document.getElementById("PC_Cursor")) {
@@ -297,7 +298,9 @@ function step() {
 				cond === "011" && registers["F"] & flags.zero || cond === "100" && !(registers["F"] & flags.zero) ||
 				cond === "101" && registers["F"] & flags.sign || cond === "110" && !(registers["F"] & flags.sign)) {
 			registers["PC"] = next - 1;
-		}
+		} else {
+         registers["PC"]++;
+      }
 	} else if (inst.startsWith("10110110")) { // DJNZ adr
 		if (registers["B"] === 0) {
 			registers["B"] = 0x100;
@@ -505,9 +508,13 @@ function toHex(a) {
 
 window.onload = function() {
 	editor = ace.edit("editor");
-	editor.setFontSize(24);
+	editor.setFontSize(30);
 	editor.setTheme("ace/theme/twilight");
-	ace.require("ace/keybindings/vim");
+   editor.session.setOptions({
+      tabSize: 3,
+      useSoftTabs: true
+   });
+	//ace.require("ace/keybindings/vim");
 	//editor.setKeyboardHandler("ace/keyboard/vim");    
 		
 	var hex = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "A", "B", "C", "D", "E", "F"];
@@ -575,4 +582,21 @@ function save() {
 function fileInput() {
 	var filein = document.getElementById("file-input");
 	filein.click();
+}
+
+function toggleLight() {
+   light = !light;
+   var lightButton = document.getElementById("light-button");
+   var html = document.getElementsByTagName("html")[0];
+   if (light) {
+      editor.setTheme("ace/theme/dawn");
+      html.style.setProperty("--bg", "white");
+      html.style.setProperty("--fg", "black");
+      lightButton.innerHTML = "Dark";
+   } else {
+      editor.setTheme("ace/theme/twilight");
+      html.style.setProperty("--bg", "black");
+      html.style.setProperty("--fg", "white");
+      lightButton.innerHTML = "Light";
+   }
 }
