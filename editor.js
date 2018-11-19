@@ -38,13 +38,13 @@ const flags = {zero: 1, carry: 16, sign: 8};
 
 var registers = {"A": 0, "B": 0, "C": 0, "D": 0, "F": 0, "PC": 0, "SP": 127};
 
+var Range = ace.require('ace/range').Range;
 var memory = {data: null, lineNum: null};
 var cpu, help, editor;
 var showHelp = false;
-var Range = ace.require('ace/range').Range;
 var timerID = 0;
 var hasReset = false;
-var light = false;
+var lightTheme = false;
 
 function updateRegisters() {
 	if (document.getElementById("PC_Cursor")) {
@@ -348,7 +348,8 @@ function toggleHelp() {
 
 function reset() {
 	if (hasReset) {
-		flash();
+		clearMemory();
+      showMemory();
 	}
 	if (timerID !== 0) {
 		run();
@@ -364,7 +365,7 @@ function reset() {
 function run() {
 	hasReset = false;
 	if (timerID === 0) {
-		timerID = window.setInterval(step, 15);
+		timerID = window.setInterval(step, 50);
 		document.getElementById("run-button").innerHTML = "Pause<br>||";
 	} else {
 		window.clearInterval(timerID);
@@ -373,16 +374,21 @@ function run() {
 	}
 }
 
-function flash() {
-	clearMarkers();
-	if (showHelp)
-		toggleHelp();
-	var src = editor.getValue();
+function clearMemory() {
 	memory.data = new Array(128);
 	memory.data.fill("-");
 	memory.lineNum = new Array(128);
 	memory.lineNum.fill(-1);
+}
 
+function flash() {
+	clearMarkers();
+   clearMemory();
+
+	if (showHelp)
+		toggleHelp();
+
+	var src = editor.getValue();
 	var lines = src.split("\n");
 	var lineNum = 0;
 	var locCounter = 0;
@@ -481,6 +487,10 @@ function flash() {
 	});
 
 	editor.session.addMarker(new Range(memory.lineNum[registers["PC"]], 0, memory.lineNum[registers["PC"]], 1), "active-line", "fullLine");
+   showMemory();
+}
+
+function showMemory() {
 	for (var i = 0; i < memory.data.length; i++) {
 		if (memory.data[i] === "-") {
 			cpu.children[i % 16 + 1].children[Math.floor(i / 16 + 1)].innerHTML = "-";
@@ -585,10 +595,10 @@ function fileInput() {
 }
 
 function toggleLight() {
-   light = !light;
+   lightTheme = !lightTheme;
    var lightButton = document.getElementById("light-button");
    var html = document.getElementsByTagName("html")[0];
-   if (light) {
+   if (lightTheme) {
       editor.setTheme("ace/theme/dawn");
       html.style.setProperty("--bg", "white");
       html.style.setProperty("--fg", "black");
